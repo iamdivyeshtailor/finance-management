@@ -1,6 +1,6 @@
+// Color thresholds: 0-70% green, 70-100% yellow, 100%+ red
 export default function ProgressBar({ percentUsed }) {
-  const clamped = Math.min(percentUsed, 100);
-  const isOver = percentUsed > 100;
+  const clamped = Math.min(percentUsed, 100); // Cap visual width at 100%
 
   let barColor = 'bg-success-500';
   if (percentUsed > 100) barColor = 'bg-danger-500';

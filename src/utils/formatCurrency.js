@@ -1,3 +1,4 @@
+// Formats numbers as Indian Rupees: 1500 → "₹1,500"
 const formatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
