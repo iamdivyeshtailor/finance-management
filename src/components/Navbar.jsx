@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const links = [
   { to: '/', label: 'Dashboard' },
@@ -11,6 +12,13 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const linkClass = ({ isActive }) =>
     `block px-3 py-2 rounded-md text-sm font-medium ${
@@ -28,13 +36,24 @@ export default function Navbar() {
             Finance Manager
           </NavLink>
 
-          {/* Desktop links */}
+          {/* Desktop links + user */}
           <div className="hidden md:flex md:items-center md:gap-1">
             {links.map((link) => (
               <NavLink key={link.to} to={link.to} className={linkClass} end={link.to === '/'}>
                 {link.label}
               </NavLink>
             ))}
+            {user && (
+              <div className="ml-3 flex items-center gap-2 border-l border-primary-500 pl-3">
+                <span className="text-sm text-primary-100">{user.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-primary-100 hover:bg-primary-500 hover:text-white"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -68,6 +87,17 @@ export default function Navbar() {
                 {link.label}
               </NavLink>
             ))}
+            {user && (
+              <div className="border-t border-primary-500 mt-2 pt-2">
+                <span className="block px-3 py-1 text-sm text-primary-200">{user.name}</span>
+                <button
+                  onClick={() => { setOpen(false); handleLogout(); }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-primary-100 hover:bg-primary-500 hover:text-white"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
