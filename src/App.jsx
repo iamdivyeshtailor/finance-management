@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
-import AddExpense from './pages/AddExpense';
 import ExpenseHistory from './pages/ExpenseHistory';
 import Settings from './pages/Settings';
 import MonthlyReports from './pages/MonthlyReports';
@@ -29,7 +28,6 @@ export default function App() {
                   <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/add" element={<AddExpense />} />
                       <Route path="/history" element={<ExpenseHistory />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/reports" element={<MonthlyReports />} />

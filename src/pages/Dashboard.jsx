@@ -1,37 +1,53 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getCurrentReport } from '../services/reportService';
+import { addExpense } from '../services/expenseService';
 import { formatCurrency } from '../utils/formatCurrency';
 import { getMonthName } from '../utils/dateHelpers';
 import SummaryBar from '../components/SummaryBar';
 import CategoryCard from '../components/CategoryCard';
+import ExpenseForm from '../components/ExpenseForm';
 import Spinner from '../components/Spinner';
 import Toast from '../components/Toast';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(location.state?.success || null);
+  const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    // Clear navigation state so message doesn't reappear on refresh
-    if (location.state?.success) {
-      window.history.replaceState({}, '');
-    }
-  }, [location.state]);
+  // Add expense form state
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    getCurrentReport()
+  const fetchReport = () => {
+    return getCurrentReport()
       .then(setReport)
       .catch((err) => {
         const msg = err.response?.data?.error?.message || 'Failed to load dashboard. Is the server running?';
         setError(msg);
-      })
-      .finally(() => setLoading(false));
+      });
+  };
+
+  useEffect(() => {
+    fetchReport().finally(() => setLoading(false));
   }, []);
+
+  const handleAddExpense = async (data) => {
+    setSubmitting(true);
+    try {
+      await addExpense(data);
+      setShowForm(false);
+      await fetchReport();
+      setToast({ type: 'success', text: 'Expense added successfully!' });
+    } catch (err) {
+      const msg = err.response?.data?.error?.message || 'Failed to add expense.';
+      setToast({ type: 'error', text: msg });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return <Spinner text="Loading dashboard..." />;
@@ -56,6 +72,9 @@ export default function Dashboard() {
     );
   }
 
+  // Map report categories to the format ExpenseForm expects
+  const formCategories = report.categories.map((cat) => ({ name: cat.name }));
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -67,15 +86,37 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => navigate('/add')}
-          className="w-full rounded-md bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 sm:w-auto"
+          onClick={() => setShowForm(!showForm)}
+          className={`w-full rounded-md px-4 py-2.5 text-sm font-medium sm:w-auto ${
+            showForm
+              ? 'border border-slate-300 text-slate-600 hover:bg-slate-50'
+              : 'bg-primary-600 text-white hover:bg-primary-700'
+          }`}
         >
-          + Add Expense
+          {showForm ? 'Cancel' : '+ Add Expense'}
         </button>
       </div>
 
-      {/* Toast from Add Expense redirect */}
-      <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+      {/* Collapsible Add Expense Form */}
+      {showForm && (
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-slate-800">Add Expense</h2>
+          <ExpenseForm
+            categories={formCategories}
+            onSubmit={handleAddExpense}
+            submitting={submitting}
+          />
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.text}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       {/* Summary Bar */}
       <SummaryBar
@@ -85,7 +126,7 @@ export default function Dashboard() {
       />
 
       {/* No expenses hint */}
-      {report.totalSpent === report.totalFixedDeductions && (
+      {report.totalSpent === report.totalFixedDeductions && !showForm && (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white py-8 text-center">
           <p className="text-sm text-slate-500">No variable expenses this month. Tap <strong>+ Add Expense</strong> to log one.</p>
         </div>
