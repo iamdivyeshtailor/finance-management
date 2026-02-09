@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ExpenseHistory from './pages/ExpenseHistory';
 import Settings from './pages/Settings';
 import MonthlyReports from './pages/MonthlyReports';
+import BulkImport from './pages/BulkImport';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -31,6 +32,7 @@ export default function App() {
                       <Route path="/history" element={<ExpenseHistory />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/reports" element={<MonthlyReports />} />
+                      <Route path="/import" element={<BulkImport />} />
                     </Routes>
                   </main>
                   <footer className="border-t border-slate-200 py-4 text-center text-sm text-slate-400">
