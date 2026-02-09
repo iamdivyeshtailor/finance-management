@@ -4,6 +4,7 @@ import { getSettings } from '../services/settingsService';
 import { getCurrentReport } from '../services/reportService';
 import { getMonthName } from '../utils/dateHelpers';
 import ExpenseTable from '../components/ExpenseTable';
+import TagInput from '../components/TagInput';
 import Spinner from '../components/Spinner';
 import Toast from '../components/Toast';
 
@@ -13,6 +14,7 @@ export default function ExpenseHistory() {
   const [month, setMonth] = useState(null);
   const [year, setYear] = useState(null);
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterTag, setFilterTag] = useState('');
   const [sortBy, setSortBy] = useState('date-desc');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
@@ -32,10 +34,13 @@ export default function ExpenseHistory() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Collect unique tags for the filter dropdown
+  const allTags = [...new Set(expenses.flatMap((e) => e.tags || []))].sort();
+
   // Filter
-  const filtered = filterCategory
-    ? expenses.filter((e) => e.category === filterCategory)
-    : expenses;
+  let filtered = expenses;
+  if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
+  if (filterTag) filtered = filtered.filter((e) => (e.tags || []).includes(filterTag));
 
   // Sort
   const sorted = [...filtered].sort((a, b) => {
@@ -123,6 +128,19 @@ export default function ExpenseHistory() {
           </select>
         </div>
         <div>
+          <label className="block text-xs font-medium text-slate-500">Filter by Tag</label>
+          <select
+            value={filterTag}
+            onChange={(e) => setFilterTag(e.target.value)}
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          >
+            <option value="">All Tags</option>
+            {allTags.map((tag) => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-xs font-medium text-slate-500">Sort by</label>
           <select
             value={sortBy}
@@ -185,6 +203,7 @@ function EditModal({ expense, categories, onSave, onCancel }) {
   const [category, setCategory] = useState(expense.category);
   const [amount, setAmount] = useState(expense.amount);
   const [description, setDescription] = useState(expense.description);
+  const [tags, setTags] = useState(expense.tags || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -200,6 +219,7 @@ function EditModal({ expense, categories, onSave, onCancel }) {
       category,
       amount: Number(amount),
       description: description.trim(),
+      tags,
     });
     setSaving(false);
   };
@@ -231,6 +251,10 @@ function EditModal({ expense, categories, onSave, onCancel }) {
           <div>
             <label className="block text-sm font-medium text-slate-600">Description</label>
             <input type="text" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600">Tags</label>
+            <TagInput tags={tags} onChange={setTags} />
           </div>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={onCancel} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">

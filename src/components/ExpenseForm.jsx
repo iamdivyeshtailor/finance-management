@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { getTodayString } from '../utils/dateHelpers';
+import TagInput from './TagInput';
 
 export default function ExpenseForm({ categories, onSubmit, submitting }) {
   const [date, setDate] = useState(getTodayString());
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [tags, setTags] = useState([]);
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -29,6 +31,7 @@ export default function ExpenseForm({ categories, onSubmit, submitting }) {
       category,
       amount: Number(amount),
       description: description.trim(),
+      tags,
     });
   };
 
@@ -100,6 +103,12 @@ export default function ExpenseForm({ categories, onSubmit, submitting }) {
             : <span />}
           <span className="text-xs text-slate-400">{description.length}/200</span>
         </div>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="block text-sm font-medium text-slate-600">Tags</label>
+        <TagInput tags={tags} onChange={setTags} />
       </div>
 
       {/* Buttons */}

@@ -20,6 +20,7 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }) {
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Description</th>
+              <th className="px-4 py-3 font-medium">Tags</th>
               <th className="px-4 py-3 font-medium text-right">Amount</th>
               <th className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
@@ -30,6 +31,13 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }) {
                 <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDate(exp.date)}</td>
                 <td className="px-4 py-3 text-slate-700">{exp.category}</td>
                 <td className="px-4 py-3 text-slate-600">{exp.description}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {(exp.tags || []).map((tag) => (
+                      <span key={tag} className="inline-block rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">{tag}</span>
+                    ))}
+                  </div>
+                </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-slate-700">{formatCurrency(exp.amount)}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-right">
                   <button
@@ -48,7 +56,7 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }) {
               </tr>
             ))}
             <tr className="bg-slate-50 font-medium">
-              <td className="px-4 py-3 text-slate-700" colSpan={3}>Total</td>
+              <td className="px-4 py-3 text-slate-700" colSpan={4}>Total</td>
               <td className="px-4 py-3 text-right text-slate-700">{formatCurrency(total)}</td>
               <td></td>
             </tr>
@@ -64,6 +72,13 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }) {
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-slate-800">{exp.description}</p>
                 <p className="mt-1 text-xs text-slate-500">{exp.category} &middot; {formatDate(exp.date)}</p>
+                {exp.tags?.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {exp.tags.map((tag) => (
+                      <span key={tag} className="inline-block rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
               <p className="ml-3 whitespace-nowrap text-lg font-semibold text-slate-900">{formatCurrency(exp.amount)}</p>
             </div>
