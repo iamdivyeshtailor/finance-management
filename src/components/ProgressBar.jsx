@@ -7,7 +7,7 @@ export default function ProgressBar({ percentUsed }) {
   else if (percentUsed > 70) barColor = 'bg-warning-500';
 
   return (
-    <div className="h-2.5 w-full rounded-full bg-slate-200">
+    <div className="h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-700">
       <div
         className={`h-2.5 rounded-full ${barColor}`}
         style={{ width: `${clamped}%` }}

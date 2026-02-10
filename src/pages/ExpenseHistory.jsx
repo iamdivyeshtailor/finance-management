@@ -3,6 +3,7 @@ import { getExpenses, updateExpense, deleteExpense } from '../services/expenseSe
 import { getSettings } from '../services/settingsService';
 import { getCurrentReport } from '../services/reportService';
 import { getMonthName } from '../utils/dateHelpers';
+import { exportToCSV } from '../utils/exportHelpers';
 import ExpenseTable from '../components/ExpenseTable';
 import TagInput from '../components/TagInput';
 import Spinner from '../components/Spinner';
@@ -16,6 +17,8 @@ export default function ExpenseHistory() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [sortBy, setSortBy] = useState('date-desc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -34,6 +37,12 @@ export default function ExpenseHistory() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Collect unique tags for the filter dropdown
   const allTags = [...new Set(expenses.flatMap((e) => e.tags || []))].sort();
 
@@ -41,6 +50,17 @@ export default function ExpenseHistory() {
   let filtered = expenses;
   if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
   if (filterTag) filtered = filtered.filter((e) => (e.tags || []).includes(filterTag));
+
+  // Search
+  if (debouncedSearch) {
+    const q = debouncedSearch.toLowerCase();
+    filtered = filtered.filter((e) =>
+      (e.description || '').toLowerCase().includes(q) ||
+      (e.category || '').toLowerCase().includes(q) ||
+      (e.tags || []).some((t) => t.toLowerCase().includes(q)) ||
+      String(e.amount).includes(q)
+    );
+  }
 
   // Sort
   const sorted = [...filtered].sort((a, b) => {
@@ -51,10 +71,7 @@ export default function ExpenseHistory() {
     return 0;
   });
 
-  // Edit handler
-  const handleEdit = (exp) => {
-    setEditingExpense(exp);
-  };
+  const handleEdit = (exp) => setEditingExpense(exp);
 
   const handleEditSave = async (data) => {
     setMessage(null);
@@ -69,10 +86,7 @@ export default function ExpenseHistory() {
     }
   };
 
-  // Delete handler
-  const handleDelete = (exp) => {
-    setConfirmDelete(exp);
-  };
+  const handleDelete = (exp) => setConfirmDelete(exp);
 
   const handleDeleteConfirm = async () => {
     setMessage(null);
@@ -91,17 +105,19 @@ export default function ExpenseHistory() {
     return <Spinner text="Loading expenses..." />;
   }
 
+  const selectClass = 'mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100';
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Expense History</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Expense History</h1>
         {month && year && (
-          <p className="mt-1 text-sm text-slate-500">{getMonthName(month)} {year}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{getMonthName(month)} {year}</p>
         )}
       </div>
 
       {message && message.type === 'error' && (
-        <div className="rounded-md bg-danger-50 px-4 py-3 text-sm text-danger-700">
+        <div className="rounded-md bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:bg-danger-900/30 dark:text-danger-300">
           {message.text}
         </div>
       )}
@@ -112,15 +128,35 @@ export default function ExpenseHistory() {
         onClose={() => setMessage(null)}
       />
 
-      {/* Filters */}
+      {/* Search */}
+      <div className="relative">
+        <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search expenses..."
+          className="w-full rounded-md border border-slate-300 py-2 pl-10 pr-10 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Filters + Export */}
       <div className="flex flex-wrap items-end gap-4">
         <div>
-          <label className="block text-xs font-medium text-slate-500">Filter by Category</label>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Filter by Category</label>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className={selectClass}>
             <option value="">All Categories</option>
             {categories.map((cat) => (
               <option key={cat.name} value={cat.name}>{cat.name}</option>
@@ -128,12 +164,8 @@ export default function ExpenseHistory() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500">Filter by Tag</label>
-          <select
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Filter by Tag</label>
+          <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className={selectClass}>
             <option value="">All Tags</option>
             {allTags.map((tag) => (
               <option key={tag} value={tag}>{tag}</option>
@@ -141,18 +173,21 @@ export default function ExpenseHistory() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500">Sort by</label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Sort by</label>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={selectClass}>
             <option value="date-desc">Date (Newest)</option>
             <option value="date-asc">Date (Oldest)</option>
             <option value="amount-desc">Amount (High → Low)</option>
             <option value="amount-asc">Amount (Low → High)</option>
           </select>
         </div>
+        <button
+          onClick={() => exportToCSV(sorted, `expenses-${month}-${year}.csv`)}
+          disabled={sorted.length === 0}
+          className="ml-auto rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+        >
+          Export CSV
+        </button>
       </div>
 
       {/* Expense Table */}
@@ -171,15 +206,15 @@ export default function ExpenseHistory() {
       {/* Delete Confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center">
-          <div className="w-full max-w-sm rounded-t-lg bg-white p-6 shadow-xl sm:rounded-lg">
-            <h3 className="text-lg font-medium text-slate-900">Delete Expense?</h3>
-            <p className="mt-2 text-sm text-slate-500">
+          <div className="w-full max-w-sm rounded-t-lg bg-white p-6 shadow-xl sm:rounded-lg dark:bg-slate-800">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Delete Expense?</h3>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Are you sure you want to delete "{confirmDelete.description}"? This cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>
@@ -224,20 +259,20 @@ function EditModal({ expense, categories, onSave, onCancel }) {
     setSaving(false);
   };
 
-  const inputClass = 'mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
+  const inputClass = 'mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 sm:items-center">
-      <div className="w-full max-w-md rounded-t-lg bg-white p-6 shadow-xl sm:rounded-lg">
-        <h3 className="text-lg font-medium text-slate-900">Edit Expense</h3>
+      <div className="w-full max-w-md rounded-t-lg bg-white p-6 shadow-xl sm:rounded-lg dark:bg-slate-800">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Edit Expense</h3>
         {error && <p className="mt-2 text-sm text-danger-600">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-600">Date</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600">Category</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
               {categories.map((cat) => (
                 <option key={cat.name} value={cat.name}>{cat.name}</option>
@@ -245,19 +280,19 @@ function EditModal({ expense, categories, onSave, onCancel }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600">Amount</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Amount</label>
             <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600">Description</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Description</label>
             <input type="text" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600">Tags</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Tags</label>
             <TagInput tags={tags} onChange={setTags} />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={onCancel} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+            <button type="button" onClick={onCancel} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
               Cancel
             </button>
             <button type="submit" disabled={saving} className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50">

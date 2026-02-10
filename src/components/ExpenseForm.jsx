@@ -36,34 +36,22 @@ export default function ExpenseForm({ categories, onSubmit, submitting }) {
   };
 
   const inputClass = (field) =>
-    `mt-1 w-full rounded-md border px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-1 ${
+    `mt-1 w-full rounded-md border px-3 py-2 text-sm text-slate-900 dark:text-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-1 ${
       errors[field]
         ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500'
-        : 'border-slate-300 focus:border-primary-500 focus:ring-primary-500'
+        : 'border-slate-300 dark:border-slate-600 focus:border-primary-500 focus:ring-primary-500'
     }`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Date */}
       <div>
-        <label className="block text-sm font-medium text-slate-600">Date</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className={inputClass('date')}
-        />
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Date</label>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass('date')} />
         {errors.date && <p className="mt-1 text-xs text-danger-600">{errors.date}</p>}
       </div>
-
-      {/* Category */}
       <div>
-        <label className="block text-sm font-medium text-slate-600">Category</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className={inputClass('category')}
-        >
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Category</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass('category')}>
           <option value="">Select a category</option>
           {categories.map((cat) => (
             <option key={cat.name} value={cat.name}>{cat.name}</option>
@@ -71,53 +59,25 @@ export default function ExpenseForm({ categories, onSubmit, submitting }) {
         </select>
         {errors.category && <p className="mt-1 text-xs text-danger-600">{errors.category}</p>}
       </div>
-
-      {/* Amount */}
       <div>
-        <label className="block text-sm font-medium text-slate-600">Amount (INR)</label>
-        <input
-          type="number"
-          min="1"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className={inputClass('amount')}
-          placeholder="e.g. 500"
-        />
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Amount (INR)</label>
+        <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} className={inputClass('amount')} placeholder="e.g. 500" />
         {errors.amount && <p className="mt-1 text-xs text-danger-600">{errors.amount}</p>}
       </div>
-
-      {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-slate-600">Description</label>
-        <input
-          type="text"
-          maxLength={200}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={inputClass('description')}
-          placeholder="e.g. Dinner with friends"
-        />
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Description</label>
+        <input type="text" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass('description')} placeholder="e.g. Dinner with friends" />
         <div className="mt-1 flex justify-between">
-          {errors.description
-            ? <p className="text-xs text-danger-600">{errors.description}</p>
-            : <span />}
-          <span className="text-xs text-slate-400">{description.length}/200</span>
+          {errors.description ? <p className="text-xs text-danger-600">{errors.description}</p> : <span />}
+          <span className="text-xs text-slate-400 dark:text-slate-500">{description.length}/200</span>
         </div>
       </div>
-
-      {/* Tags */}
       <div>
-        <label className="block text-sm font-medium text-slate-600">Tags</label>
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">Tags</label>
         <TagInput tags={tags} onChange={setTags} />
       </div>
-
-      {/* Buttons */}
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting} className="rounded-md bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50">
           {submitting ? 'Adding...' : 'Add Expense'}
         </button>
       </div>

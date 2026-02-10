@@ -13,12 +13,10 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!email.trim() || !password) {
       setMessage({ type: 'error', text: 'Email and password are required.' });
       return;
     }
-
     setSubmitting(true);
     try {
       await login(email.trim(), password);
@@ -32,35 +30,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 dark:bg-slate-900">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">Welcome Back</h1>
-          <p className="text-gray-500 text-center mb-6">Sign in to your finance tracker</p>
+        <div className="bg-white rounded-2xl shadow-lg p-8 dark:bg-slate-800">
+          <h1 className="text-2xl font-bold text-gray-800 text-center mb-2 dark:text-slate-100">Welcome Back</h1>
+          <p className="text-gray-500 text-center mb-6 dark:text-slate-400">Sign in to your finance tracker</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-300">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 placeholder="you@example.com"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-300">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 placeholder="Enter your password"
               />
             </div>
-
             <button
               type="submit"
               disabled={submitting}
@@ -70,22 +66,14 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-gray-500 mt-6 dark:text-slate-400">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">
-              Create one
-            </Link>
+            <Link to="/register" className="text-blue-600 hover:underline font-medium dark:text-blue-400">Create one</Link>
           </p>
         </div>
       </div>
 
-      {message && (
-        <Toast
-          type={message.type}
-          message={message.text}
-          onClose={() => setMessage(null)}
-        />
-      )}
+      {message && <Toast type={message.type} message={message.text} onClose={() => setMessage(null)} />}
     </div>
   );
 }

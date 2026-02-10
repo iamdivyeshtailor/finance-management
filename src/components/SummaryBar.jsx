@@ -5,16 +5,16 @@ export default function SummaryBar({ salary, totalSpent, currentSavings }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">Salary</p>
-        <p className="mt-1 text-2xl font-bold text-slate-900">{formatCurrency(salary)}</p>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Salary</p>
+        <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{formatCurrency(salary)}</p>
       </div>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">Total Spent</p>
-        <p className="mt-1 text-2xl font-bold text-slate-900">{formatCurrency(totalSpent)}</p>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Spent</p>
+        <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{formatCurrency(totalSpent)}</p>
       </div>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">Current Savings</p>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Current Savings</p>
         <p className={`mt-1 text-2xl font-bold ${savingsColor}`}>{formatCurrency(currentSavings)}</p>
       </div>
     </div>
